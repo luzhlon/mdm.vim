@@ -4,7 +4,7 @@ fun! mdm#code()
 endf
 
 fun! mdm#quote()
-    return (mode()==?'v'?"\<c-v>": '') . "0I> \<esc>"
+    return (mode()==?'v'?"\<c-v>": '') . "^I> \<esc>"
 endf
 
 fun! mdm#bold()
@@ -12,7 +12,7 @@ fun! mdm#bold()
 endf
 
 fun! mdm#list()
-    return (mode()==?'v'?"\<c-v>": '') . "0I* \<esc>"
+    return (mode()==?'v'?"\<c-v>": '') . "^I* \<esc>"
 endf
 
 fun! s:orderlist(n)
@@ -20,24 +20,46 @@ fun! s:orderlist(n)
     return matchlist(l, '^\(\s*\)[（(]\?\(\d\)\+[）)]\?[\.、]\?\s*\(.*\)$')
 endf
 
-fun! mdm#SmartList(...)
+fun! mdm#OrderedList() range
+    let i = a:firstline
+    let j = 1
+    while i <= a:lastline
+        exe i 'norm I' . j . '. '
+        let i += 1 | let j += 1
+    endw
+endf
+
+fun! mdm#SmartList(...) range
     let n = a:0 ? a:1 : line('.')
     let l = getline(n)
     " Try as ordered list
     let ml = s:orderlist(n)
-    let i = n
-    while !empty(ml)
-        call setline(i, join([ml[1], ml[2], '. ', ml[3]], ''))
-        let i += 1
+    let i = n | let j = 1
+    let STOP = {->empty(ml)}
+    if v:count
+        let i = a:firstline
+        let STOP = {->i > a:lastline}
+    endif
+    while !STOP()
+        call setline(i, join([ml[1], j, '. ', ml[3]], ''))
+        let i += 1 | let j += 1
         let ml = s:orderlist(i)
     endw
     " If is unordered list
     if i == n
         let dc = indent(i)
-        while indent(i) == dc && !empty(getline(i))
-            exe i 's/^\(\s*\)[\*·]\?\s*\(.*\)$/\1* \2/'
-            let i += 1
-        endw
+        if v:count              " Visual mode
+            let i = a:firstline
+            while i <= a:lastline
+                exe i 'norm I* '
+                let i += 1
+            endw
+        else                    " Normal mode
+            while indent(i) == dc && !empty(getline(i))
+                exe i 's/^\(\s*\)[\*·]\?\s*\(.*\)$/\1* \2/'
+                let i += 1
+            endw
+        endif
     endif
 endf
 
