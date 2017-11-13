@@ -16,8 +16,8 @@ fun! mdm#list()
 endf
 
 fun! s:orderlist(n)
-    let l = getline(a:n)
-    return matchlist(l, '^\(\s*\)[（(]\?\(\d\)\+[）)]\?[\.、]\?\s*\(.*\)$')
+    let m = matchlist(getline(a:n), '^\(\s*\)[（(]\?\(\d\+\)[）)]\?[\.、]\?\s*\(.*\)$')
+    return len(m) > 1 && len(m[2]) > 2 ? 0: m
 endf
 
 fun! mdm#OrderedList() range
@@ -31,7 +31,6 @@ endf
 
 fun! mdm#SmartList(...) range
     let n = a:0 ? a:1 : line('.')
-    let l = getline(n)
     " Try as ordered list
     let ml = s:orderlist(n)
     let i = n | let j = 1
