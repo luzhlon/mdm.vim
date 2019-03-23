@@ -292,3 +292,7 @@ fun! mdmtab#togtask()
         s/^\s*[\*-+]\s\+\[\zs.\ze\]/x/
     endif
 endf
+
+fun! mdmtab#in_table()
+    return g:mdm#tab#enable && getline('.')=~'^\s*|'
+endf
